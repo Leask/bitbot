@@ -1,0 +1,14 @@
+{
+    "name": "bitbot",
+    "description": "Simple build bot works with bitbucket.",
+    "version": "0.0.3",
+    "private": true,
+    "homepage": "https://github.com/Leask/bitbot",
+    "scripts": {
+        "start": "node main.js"
+    },
+    "dependencies" : {
+        "express" : "*",
+        "body-parser" : "*"
+    }
+}

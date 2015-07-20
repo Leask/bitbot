@@ -26,7 +26,7 @@ var building = false;
 var report = new mailgun(bbApp.config.mailgun.api_key);
 
 bbApp.all('*', function(req, res, next) {
-    if (req.query.token !== 'bbApp.config.token') {
+    if (req.query.token !== bbApp.config.token) {
         return res.send(401);
     }
     if (building) {

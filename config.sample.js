@@ -8,8 +8,10 @@ var config = {
         'default'   : '*******.sh',
         'project_a' : '*******_a.sh',
         'project_b' : '*******_b.sh',
-        'project_c' : '*******_b.sh'
-    }
+        'project_c' : '*******_b.sh',
+    },
+
+    notification : 'error', // all
 
     token : '****************************************************************',
 

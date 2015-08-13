@@ -47,20 +47,23 @@ bbApp.all('*', function(req, res, next) {
         stderr += data;
     });
     build.on('close', function(code) {
-        if (code) {
-            return res.send(500);
+        console.log('Build process exited with code: ' + code + '.');
+        var rtCode = code ? 500 : 200;
+        if (bbApp.config.notification === 'all'
+        || (bbApp.config.notification === 'error' &&  code)) {
+            report.sendText(
+                bbApp.config.mailgun.sender,
+                bbApp.config.mailgun.recipients,
+                '[BitBot] ' + project + ': Building Logs @ ' + new Date(),
+                stdout + '\n' + stderr,
+                function(err) {
+                    err && console.log(err);
+                    res.send(rtCode);
+                }
+            );
+        } else {
+            res.send(rtCode);
         }
-        // console.log('child process exited with code ' + code);
-        report.sendText(
-            bbApp.config.mailgun.sender,
-            bbApp.config.mailgun.recipients,
-            '[BitBot] ' + project + ': Building Logs @ ' + new Date(),
-            stdout + '\n' + stderr,
-            function(err) {
-                err && console.log(err);
-                res.send(200);
-            }
-        );
     });
     building[project] = false;
 });

@@ -22,20 +22,24 @@ bbApp.server = http.createServer(bbApp);
 bbApp.config = config;
 
 // main
-var building = false;
+var building = [];
 var report = new mailgun(bbApp.config.mailgun.api_key);
 
 bbApp.all('*', function(req, res, next) {
     if (req.query.token !== bbApp.config.token) {
         return res.send(401);
     }
-    if (building) {
+    var project = req.query.project ? req.query.project : 'default';
+    if (!bbApp.config.build_script[project]) {
+        return res.send(400);
+    }
+    if (building[project]) {
         return res.send(200);
     }
-    building = true;
+    building[project] = true;
     var stdout = '';
     var stderr = '';
-    var build  = spawn('sh', [bbApp.config.build_script]);
+    var build  = spawn('sh', [bbApp.config.build_script[project]]);
     build.stdout.on('data', function(data) {
         stdout += data;
     });
@@ -50,7 +54,7 @@ bbApp.all('*', function(req, res, next) {
         report.sendText(
             bbApp.config.mailgun.sender,
             bbApp.config.mailgun.recipients,
-            'BitBot: Building Logs @ ' + new Date(),
+            '[BitBot] ' + project + ': Building Logs @ ' + new Date(),
             stdout + '\n' + stderr,
             function(err) {
                 err && console.log(err);
@@ -58,7 +62,7 @@ bbApp.all('*', function(req, res, next) {
             }
         );
     });
-    building = false;
+    building[project] = false;
 });
 
 bbApp.listen(bbApp.config.port, function() {

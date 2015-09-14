@@ -68,7 +68,8 @@ bbApp.all('*', function(req, res, next) {
     building[project] = false;
 });
 
-bbApp.listen(bbApp.config.port, function() {
+bbApp.listen(bbApp.config.port, bbApp.config.domain, function() {
     console.log('<<<<<<< BitBot is now ON AIR! >>>>>>>');
-    console.log('listening @ ' + bbApp.config.port);
+    console.log('listening @ ' + bbApp.config.domain
+                         + ':' + bbApp.config.port);
 });

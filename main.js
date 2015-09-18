@@ -53,7 +53,7 @@ bbApp.all('*', function(req, res, next) {
     build.on('close', function(code) {
         var title = '[BitBot] ' + project + ': Building Logs @ ' + new Date();
         stdout   += (stderr ? ('\n' + stderr) : '')
-                  + '\n' + 'Build process exited with code: ' + code + '.';
+                  + '\n' + 'Build process exited with code: ' + code + '.\n';
         console.log(title + '\n' + stdout);
         var rtCode = code ? 500 : 200;
         if (bbApp.config.notification === 'all'
@@ -61,11 +61,11 @@ bbApp.all('*', function(req, res, next) {
             report.sendText(
                 bbApp.config.mailgun.sender,
                 bbApp.config.mailgun.recipients,
-                title, stdout + '\n',
+                title, stdout,
                 function(err) {
                     if (err) {
                         rtnErr  = 'Error sending notifications: ' + err;
-                        stdout += '\n' + rtnErr + '\n';
+                        stdout += rtnErr + '\n';
                         rtCode  = 500;
                         console.log(rtnErr);
                     }

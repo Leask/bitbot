@@ -26,15 +26,19 @@ var building = [];
 var report = new mailgun(bbApp.config.mailgun.api_key);
 
 bbApp.all('*', function(req, res, next) {
+    var rtnErr = '';
     if (req.query.token !== bbApp.config.token) {
-        return res.send(401);
+        console.log((rtnErr = 'Error token: ' + req.query.token));
+        return res.status(401).send(rtnErr);
     }
     var project = req.query.project ? req.query.project : 'default';
     if (!bbApp.config.build_script[project]) {
-        return res.send(400);
+        console.log((rtnErr = 'Error project: ' + req.query.project));
+        return res.status(400).send(rtnErr);
     }
     if (building[project]) {
-        return res.send(200);
+        console.log((rtnErr = 'Project is busy now: ' + req.query.project));
+        return res.status(500).send(rtnErr);
     }
     building[project] = true;
     var stdout = '';
@@ -47,22 +51,29 @@ bbApp.all('*', function(req, res, next) {
         stderr += data;
     });
     build.on('close', function(code) {
-        console.log('Build process exited with code: ' + code + '.');
+        var title = '[BitBot] ' + project + ': Building Logs @ ' + new Date();
+        stdout   += (stderr ? ('\n' + 'Error:' + '\n' + stderr) : '')
+                  + 'Build process exited with code: ' + code + '.';
+        console.log(title + '\n' + stdout);
         var rtCode = code ? 500 : 200;
         if (bbApp.config.notification === 'all'
         || (bbApp.config.notification === 'error' &&  code)) {
             report.sendText(
                 bbApp.config.mailgun.sender,
                 bbApp.config.mailgun.recipients,
-                '[BitBot] ' + project + ': Building Logs @ ' + new Date(),
-                stdout + '\n' + stderr,
+                title, stdout,
                 function(err) {
-                    err && console.log(err);
-                    res.send(rtCode);
+                    if (err) {
+                        rtnErr  = 'Error sending notifications: ' + err;
+                        stdout += '\n' + rtnErr;
+                        rtCode  = 500;
+                        console.log(rtnErr);
+                    }
+                    res.status(rtCode).send(stdout);
                 }
             );
         } else {
-            res.send(rtCode);
+            res.status(rtCode).send(stdout);
         }
     });
     building[project] = false;

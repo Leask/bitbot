@@ -43,7 +43,7 @@ bbApp.all('*', function(req, res, next) {
     building[project] = true;
     var stdout = '';
     var stderr = '';
-    var build  = spawn('sh', [bbApp.config.build_script[project]]);
+    var build  = spawn('bash', [bbApp.config.build_script[project]]);
     build.stdout.on('data', function(data) {
         stdout += data;
     });
